@@ -1,0 +1,377 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Interactively cherry-picks commits by searching their messages for a keyword.
+
+This tool is intended for tasks where set of commits need to be taken
+to a target branch in their original commit date order. This could, for
+instance, be used to build release branches from a main branch.
+
+Usage:
+  $ $app_name [options] <source-branch> <keyword ...>
+
+Options:
+  -h, --help      Print this message
+  -v, --version   Print version number
+  -D, --dry-run   Dry-run without writing
+  -S, --silent    Silent mode
+  -V, --verbose   Verbose output
+      --color     Enable colors
+      --no-color  Disable colors
+      --stdin     Branch name and keywords from standard input
+
+      --all       Select all matching commits
+      --new       Select all matching new commits
+
+Examples:
+  $ git checkout release/2022-01
+  $ $app_name main EXAMPLE-101
+
+EOF
+}
+
+main () {
+  local args OPTIND OPTARG OPTERR option \
+    color dryrun silent verbose skip_existing stdin hashes selected \
+    reset red green yellow blue magenta cyan
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  color="always"
+
+  if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
+    color=""
+  fi
+
+  while getopts ":hvVDQS-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          color) color="always" ;;
+          dryrun|dry-run) dryrun=1 ;;
+          no-color) color="" ;;
+          verbose) verbose=1 ;;
+          quiet|silent) silent=1 ;;
+          new) selected="new" ;;
+          all) selected="all" ;;
+          stdin) stdin=1 ;;
+          *) fatal "Invalid option: --$OPTARG" ;;
+        esac
+        ;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      D) dryrun=1 ;;
+      Q|S) silent=1 ;;
+      V) verbose=1 ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
+    esac
+  done
+
+  if [ "$stdin" ]; then
+    while read -r line; do
+      # shellcheck disable=SC2206
+      args+=($line)
+    done < /dev/stdin
+  fi
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  if [ "$color" ]; then
+    reset="$(tput sgr0)"
+    red="$(tput setaf 1)"
+    green="$(tput setaf 2)"
+    yellow="$(tput setaf 3)"
+    blue="$(tput setaf 4)"
+    magenta="$(tput setaf 5)"
+    cyan="$(tput setaf 6)"
+  fi
+
+  if [ "$dryrun" ]; then
+    log "${blue}ℹ${reset} Running with ${yellow}--dry-run${reset}, nothing will be written."
+  fi
+
+  pick "$@"
+}
+
+msg () {
+  local message
+
+  for message in "$@"; do
+    echo "$message"
+  done
+}
+
+log () {
+  if ! [ "$silent" ]; then
+    msg "$@"
+  fi
+}
+
+verbose () {
+  if [ "$verbose" ]; then
+    log "$@"
+  fi
+}
+
+err () {
+  log "$@" >&2
+}
+
+fatal () {
+  err "$@"
+  exit 1
+}
+
+pick() {
+  local selection hash
+
+  hashes "$@"
+
+  commits "${hashes[@]}"
+
+  if ! [ "$selected" ] && ! [ "$silent" ]; then
+    read -r -p "Cherry-pick commit row (1-n, all, new, exit): " selected
+  fi
+
+  case "$selected" in
+    "") fatal "${red}✘${reset} No selection given." ;;
+    e*|E*) fatal "${cyan}·${reset} Goodbye." ;;
+    *) selection "$selected" "${hashes[@]}" ;;
+  esac
+
+  for hash in "${selection[@]}"; do
+    cherry-pick "$hash"
+  done
+
+  log "${green}✓${reset} All selected commits processed."
+}
+
+commits() {
+  local hash index
+
+  index=1
+
+  for hash in "$@"; do
+    commit "$hash" "$index" "${##}"
+    ((index++))
+  done
+}
+
+commit () {
+  local index paddingLength padding width spacing pretty marker markerLength \
+    existing
+
+  if [ "$silent" ]; then
+    return 0
+  fi
+
+  index="${2:-}"
+  paddingLength="${3:-0}"
+  existing="$(contains "$1")"
+
+  if [ "$existing" ]; then
+    marker="✿"
+  else
+    marker=" "
+  fi
+
+  padding="    "
+  padding="${padding:1:$paddingLength}"
+  spacing="${#padding}"
+  markerLength="${#marker}"
+
+  ((width=80-2-spacing-markerLength))
+
+  pretty="$(printf '%s%s %s  %s  %s  %s' \
+    "${padding:${#index}}%C(auto,green)$index%Creset" \
+    "%C(auto,cyan)$marker%Creset" \
+    "%<($width,trunc)%s%n$padding" \
+    "%C(auto,yellow)%h%Creset" \
+    "%C(auto,magenta)%ad%Creset" \
+    "%<(40,trunc)%an")"
+
+  git show \
+    --quiet \
+    --color="${color:-never}" \
+    --date=format:'%Y-%m-%d %H:%M:%S' \
+    --pretty="${pretty[*]}" \
+    "$1" \
+    || fatal "${red}✘${reset} Failed to get commit ${yellow}$1${reset}"
+
+  if [ "$existing" ]; then
+    verbose "${padding}  ${cyan}@${reset} ${yellow}$existing${reset}"
+  fi
+}
+
+selection () {
+  local min max row i hash
+
+  selection=()
+
+  row="$1"
+
+  shift 1
+
+  case "$row" in
+    n*) skip_existing=1 ;;
+    a*|"") ;;
+    *-*)
+      min="$(echo "$row" | awk -F '-' '{print $1}')"
+      max="$(echo "$row" | awk -F '-' '{print $2}')"
+      ;;
+    *)
+      min="$row"
+      max="$row"
+      ;;
+  esac
+
+  min="${min:-1}"
+  max="${max:-$#}"
+
+  if ! [[ "$min" =~ ^[0-9]+$ ]] || [ "$min" -lt 1 ]; then
+    fatal "${red}✘${reset} Invalid minimum selection range '$min'"
+  fi
+
+  if ! [[ "$max" =~ ^[0-9]+$ ]] || [ "$max" -gt "$#" ]; then
+    fatal "${red}✘${reset} Invalid maximum selection range '$max'"
+  fi
+
+  for ((i=min;i<=max;i++)); do
+    hash="${*:$i:1}"
+
+    if ! [ "$hash" ]; then
+      fatal "${red}✘${reset} Invalid row number '$i'"
+    fi
+
+    selection+=("$hash")
+  done
+
+  return 0
+}
+
+cherry-pick () {
+  local abort hash existing
+
+  hash="${1:-}"
+
+  if [ "$skip_existing" ]; then
+    existing="$(contains "$hash")"
+
+    if [ "$existing" ]; then
+      log "${cyan}✿${reset} Skipping ${yellow}$hash${reset}"
+      verbose "  Exists as ${yellow}$existing${reset}"
+      return 0
+    fi
+  fi
+
+  log "${magenta}↯${reset} Cherry-picking ${yellow}$hash${reset}"
+
+  if [ "$verbose" ]; then
+    commit "$hash"
+  fi
+
+  run cherry-pick -x "$hash" && return 0
+
+  err "${red}✘${reset} Cherry-picking ${yellow}$hash${reset} failed"
+
+  read -r -p "Skip and continue from the next commit (Yes/no)? " abort
+
+  case "$abort" in
+    Y*|y*)
+      run cherry-pick --abort \
+        || fatal "${red}✘${reset} Aborting cherry-pick failed"
+        ;;
+    *)
+      fatal "${red}✘${reset} Exiting and leaving cherry-pick in progress"
+      ;;
+  esac
+}
+
+run () {
+  if [ "$dryrun" ]; then
+    return 0
+  fi
+
+  if [ "$silent" ]; then
+    git "$@" > /dev/null 2>&1
+  elif [ "$verbose" ]; then
+    git "$@"
+  else
+    git "$@" > /dev/null
+  fi
+
+  return "$?"
+}
+
+hashes () {
+  local args option delimiters branch
+
+  if [ "$#" -eq 0 ]; then
+    fatal "${red}✘${reset} Branch is required."
+  fi
+
+  log "${cyan}↻${reset} Searching for matching commits, this may take a while…"
+
+  branch="${1:-}"
+
+  shift 1
+
+  args=()
+  hashes=()
+
+  delimiters=("/" "-" "?" "!" ":" " " "." ",")
+
+  verbose "${cyan}·${reset} Grepping word delimiters are ${yellow}${delimiters[*]}${reset}"
+
+  for option in "$@"; do
+    verbose "${cyan}·${reset} Grepping commit log for ${yellow}$option${reset}"
+
+    for delimiter in "${delimiters[@]}"; do
+      delimiter="[$delimiter]"
+      args+=("--grep=^${option}${delimiter}")
+      args+=("--grep=${delimiter}${option}$")
+      args+=("--grep=${delimiter}${option}${delimiter}")
+    done
+
+    args+=("--grep=^${option}$")
+  done
+
+  while read -r line; do
+    hashes+=("$line")
+  done < <(git --no-pager log --reverse --pretty=tformat:"%H" "${args[@]}" "$branch")
+
+  if [ "${#hashes}" -eq 0 ]; then
+    fatal "${cyan}·${reset} No commits found matching the given criteria."
+  fi
+}
+
+contains () {
+  local result find
+
+  find="$(git --no-pager log -1 --pretty=tformat:"%s" "$1")"
+  result="$(git --no-pager log --pretty=tformat:"%H" --grep="^$find$")"
+
+  if ! [ "$result" ]; then
+    return 1
+  fi
+
+  echo "$result"
+}
+
+main "$@"
