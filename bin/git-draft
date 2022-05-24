@@ -29,7 +29,7 @@ Options:
 
 Examples:
   $ git checkout release/2022-01
-  $ $app_name main EXAMPLE-101
+  $ $app_name main JIRA-894 JIRA-101 JIRA-202 JIRA-1234
 
 EOF
 }
