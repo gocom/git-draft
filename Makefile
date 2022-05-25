@@ -1,4 +1,4 @@
-.PHONY: all clean help install lint test
+.PHONY: all clean docker-build help install lint test test-unit
 
 VERSION?=0.0.0
 RUN = docker-compose run --rm build
@@ -26,7 +26,13 @@ endif
 lint:
 	$(RUN) shellcheck src/git-draft
 
-test: lint
+test: lint test-unit
+
+test-unit:
+	$(RUN) bats test
+
+docker-build:
+	docker-compose build build
 
 help:
 	@echo "Manage project"
@@ -41,13 +47,13 @@ help:
 	@echo "Commands:"
 	@echo ""
 	@echo "  $$ make build"
-	@echo "  Builds executable"
+	@echo "  Builds an executable"
 	@echo ""
 	@echo "  $$ make clean"
 	@echo "  Removes built files"
 	@echo ""
 	@echo "  $$ make dist"
-	@echo "  Package"
+	@echo "  Packages a distributable archive"
 	@echo ""
 	@echo "  $$ make install"
 	@echo "  Builds and copies the executable to PREFIX"
@@ -56,5 +62,19 @@ help:
 	@echo "  Check code style"
 	@echo ""
 	@echo "  $$ make test"
-	@echo "  Runs tests"
+	@echo "  Runs full test suite and linter"
+	@echo ""
+	@echo "  $$ make test-unit"
+	@echo "  Runs only unit tests"
+	@echo ""
+	@echo "  $$ make docker-build"
+	@echo "  Re-builds the Docker image"
+	@echo ""
+	@echo "Environment variables:"
+	@echo ""
+	@echo "  PREFIX"
+	@echo "  Path to a directory where the executable is installed to"
+	@echo ""
+	@echo "  VERSION"
+	@echo "  Version number that is used when building an executable"
 	@echo ""
