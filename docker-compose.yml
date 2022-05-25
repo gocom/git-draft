@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  build:
+    build: ./docker/image/build
+    volumes:
+      - .:/app
+    network_mode: bridge

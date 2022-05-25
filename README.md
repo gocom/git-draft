@@ -12,14 +12,7 @@ issue tracker identifiers as the searched keywords.
 Install
 -----
 
-Clone the repository, and add `git-draft` to PATH:
-
-```shell
-$ git clone https://github.com/gocom/git-draft.git && cd git-draft
-$ make install PREFIX=/usr/local/bin/
-```
-
-The above would install `git-draft` executable to `/usr/local/bin/`.
+Todo.
 
 Requirements
 -----
@@ -28,11 +21,18 @@ Requirements
 * git
 * [Bash](https://www.gnu.org/software/bash/) >= 4.3
 
-Command-line usage
+Usage
 -----
 
-For available options, run:
+### Command-line usage
+
+For list of available options, run:
 
 ```shell
 $ git draft --help
 ```
+
+Development
+-----
+
+See [CONTRIBUTING.md](https://github.com/gocom/git-draft/blob/master/CONTRIBUTING.md).

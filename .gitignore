@@ -1,3 +1,5 @@
 .*
 !.editorconfig
+!.github
 !.gitignore
+build

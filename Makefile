@@ -1,16 +1,29 @@
-.PHONY: all build help install
+.PHONY: all clean help install lint test
+
+VERSION?=0.0.0
+RUN = docker-compose run --rm build
 
 all: help
 
-install:
+clean:
+	$(RUN) rm -rf build
+
+build:
+	$(RUN) bash -c 'mkdir -p build && cp src/git-draft build/git-draft && sed -i "s/@{{VERSION}}/$(VERSION)/" build/git-draft && chmod +x build/git-draft'
+
+install: build
 ifeq ($(PREFIX),)
-	@echo "PREFIX not set, only making bin/git-draft executable" >&2
-	chmod +x bin/git-draft
+	@echo "PREFIX not set, only building" >&2
 else
 	@echo "Copying git-draft to $PREFIX" >&2
-	cp bin/git-draft "$PREFIX/git-draft"
+	cp src/git-draft "$PREFIX/git-draft"
 	chmod +x "$PREFIX/git-draft"
 endif
+
+lint:
+	$(RUN) shellcheck src/git-draft
+
+test: lint
 
 help:
 	@echo "Manage project"
@@ -19,10 +32,23 @@ help:
 	@echo ""
 	@echo "  $$ make <command> ["
 	@echo "    [PREFIX=<path>]"
+	@echo "    [VERSION=<number>]"
 	@echo "  ]"
 	@echo ""
 	@echo "Commands:"
 	@echo ""
+	@echo "  $$ make build"
+	@echo "  Builds executable"
+	@echo ""
 	@echo "  $$ make install"
-	@echo "  Copies the binary to PREFIX"
+	@echo "  Builds and copies the executable to PREFIX"
+	@echo ""
+	@echo "  $$ make clean"
+	@echo "  Removes built files"
+	@echo ""
+	@echo "  $$ make lint"
+	@echo "  Check code style"
+	@echo ""
+	@echo "  $$ make test"
+	@echo "  Runs tests"
 	@echo ""

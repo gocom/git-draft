@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 app_name="${0##*/}"
-app_version="0.0.0"
+app_version="@{{VERSION}}"
 
 usage () {
   cat <<EOF
