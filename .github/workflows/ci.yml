@@ -23,5 +23,5 @@ jobs:
       - name: Upload build
         uses: actions/upload-artifact@master
         with:
-          name: git-draft_v${{ github.sha }}.sh
+          name: git-draft.sh
           path: ${{ github.workspace }}/build/git-draft

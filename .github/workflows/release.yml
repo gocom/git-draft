@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Create Release
+    name: Create release
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ github.ref }}
@@ -45,5 +45,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ github.workspace }}/build/git-draft
-          asset_name: git-draft_v${{ github.ref }}.sh
+          asset_name: git-draft.sh
           asset_content_type: text/plain
