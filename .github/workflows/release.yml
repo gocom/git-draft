@@ -17,6 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Package
+        run: make dist
+
       - name: Changelog
         id: changelog
         run: |
@@ -38,12 +41,12 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload build
+      - name: Upload package
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/build/git-draft
-          asset_name: git-draft.sh
-          asset_content_type: text/plain
+          asset_path: ${{ github.workspace }}/dist/git-draft.zip
+          asset_name: git-draft.zip
+          asset_content_type: application/zip

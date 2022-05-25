@@ -5,11 +5,14 @@ RUN = docker-compose run --rm build
 
 all: help
 
-clean:
-	$(RUN) rm -rf build
-
 build:
 	$(RUN) bash -c 'mkdir -p build && cp src/git-draft build/git-draft && sed -i "s/@{{VERSION}}/$(VERSION)/" build/git-draft && chmod +x build/git-draft'
+
+clean:
+	$(RUN) rm -rf build dist
+
+dist: build
+	$(RUN) bash -c 'mkdir -p dist && cd build && zip -r ../dist/git-draft.zip  .'
 
 install: build
 ifeq ($(PREFIX),)
@@ -40,11 +43,14 @@ help:
 	@echo "  $$ make build"
 	@echo "  Builds executable"
 	@echo ""
-	@echo "  $$ make install"
-	@echo "  Builds and copies the executable to PREFIX"
-	@echo ""
 	@echo "  $$ make clean"
 	@echo "  Removes built files"
+	@echo ""
+	@echo "  $$ make dist"
+	@echo "  Package"
+	@echo ""
+	@echo "  $$ make install"
+	@echo "  Builds and copies the executable to PREFIX"
 	@echo ""
 	@echo "  $$ make lint"
 	@echo "  Check code style"

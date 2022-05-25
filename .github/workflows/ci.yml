@@ -14,14 +14,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build
-        run: make build
-
       - name: Test
         run: make test
 
-      - name: Upload build
+      - name: Package
+        run: make dist
+
+      - name: Upload package
         uses: actions/upload-artifact@master
         with:
           name: git-draft.sh
-          path: ${{ github.workspace }}/build/git-draft
+          path: ${{ github.workspace }}/dist/git-draft.zip
