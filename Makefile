@@ -27,7 +27,7 @@ lint:
 	$(RUN) shellcheck src/git-draft
 
 process-reports:
-	$(RUN) bash -c "test -e coverage/bats.*/sonarqube.xml && sed 's/\/app\///' coverage/bats.*/sonarqube.xml > coverage/sonarqube.xml"
+	$(RUN) bash -c "test -e coverage/bats.*/sonarqube.xml && sed 's/\/app\///' coverage/bats.*/cobertura.xml > coverage/cobertura.xml"
 
 test: lint test-unit
 
