@@ -1,0 +1,27 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.sha }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: make build
+
+      - name: Test
+        run: make test
+
+      - name: Upload build
+        uses: actions/upload-artifact@master
+        with:
+          name: git-draft_v${{ github.sha }}.sh
+          path: ${{ github.workspace }}/build/git-draft
