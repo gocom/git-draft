@@ -1,6 +1,8 @@
 git-draft
 =====
 
+[![Codecov](https://img.shields.io/codecov/c/github/gocom/git-draft)](https://app.codecov.io/gh/gocom/git-draft/)
+
 Extension command for git command-line interface which allows one to
 interactively cherry-picks commits by searching their messages for a keyword.
 
