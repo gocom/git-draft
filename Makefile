@@ -1,4 +1,4 @@
-.PHONY: all clean docker-build help install lint test test-unit
+.PHONY: all clean docker-build help install lint process-reports test test-unit
 
 VERSION?=0.0.0
 RUN = docker-compose run --rm build
@@ -26,10 +26,13 @@ endif
 lint:
 	$(RUN) shellcheck src/git-draft
 
+process-reports:
+	$(RUN) bash -c "test -e coverage/bats.*/sonarqube.xml && sed 's/\/app\///' coverage/bats.*/sonarqube.xml > coverage/sonarqube.xml"
+
 test: lint test-unit
 
 test-unit:
-	$(RUN) bats test
+	$(RUN) kcov --clean --bash-dont-parse-binary-dir --include-path=/app/src /app/coverage bats test
 
 docker-build:
 	docker-compose build build
@@ -69,6 +72,9 @@ help:
 	@echo ""
 	@echo "  $$ make docker-build"
 	@echo "  Re-builds the Docker image"
+	@echo ""
+	@echo "  $$ make process-reports"
+	@echo "  Formats test reports to use relative local file paths"
 	@echo ""
 	@echo "Environment variables:"
 	@echo ""
