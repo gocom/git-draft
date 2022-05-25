@@ -23,5 +23,5 @@ jobs:
       - name: Upload package
         uses: actions/upload-artifact@master
         with:
-          name: git-draft.sh
+          name: git-draft.zip
           path: ${{ github.workspace }}/dist/git-draft.zip
