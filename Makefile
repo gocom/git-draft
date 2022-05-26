@@ -32,7 +32,7 @@ process-reports:
 test: lint test-unit
 
 test-unit:
-	$(RUN) kcov --clean --bash-dont-parse-binary-dir --include-path=/app/src /app/coverage bats test
+	$(RUN) bash -c "mkdir -p test-report && kcov --clean --bash-dont-parse-binary-dir --include-path=/app/src /app/coverage bats --pretty --report-formatter junit --output /app/test-report test"
 
 docker-build:
 	docker-compose build build
