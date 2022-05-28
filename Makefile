@@ -1,4 +1,4 @@
-.PHONY: all clean docker-build help install lint mock-commits mock-repository process-reports test test-unit
+.PHONY: all build-src build-man clean docker-build help install lint mock-commits mock-repository process-reports test test-unit
 
 VERSION?=0.0.0
 RUN = docker-compose run --rm build
@@ -6,13 +6,20 @@ RUN = docker-compose run --rm build
 all: help
 
 build:
-	$(RUN) bash -c 'mkdir -p build && cp src/git-draft build/git-draft && sed -i "s/@{{VERSION}}/$(VERSION)/" build/git-draft && chmod +x build/git-draft'
+	$(MAKE) build-src
+	$(MAKE) build-man
+
+build-src:
+	$(RUN) bash -c 'mkdir -p build/bin && cp src/git-draft build/bin/git-draft && sed -i "s/@{{VERSION}}/$(VERSION)/" build/bin/git-draft && chmod +x build/bin/git-draft'
+
+build-man:
+	$(RUN) bash -c 'mkdir -p build/man/man1/ && pandoc -s -f markdown -t man -o build/man/man1/git-draft.1 man/man1/git-draft.1.md'
 
 clean:
 	$(RUN) rm -rf build dist
 
 dist: build
-	$(RUN) bash -c 'mkdir -p dist && cd build && zip -r ../dist/git-draft.zip  .'
+	$(RUN) bash -c 'mkdir -p dist && cp LICENSE build/LICENSE && cd build && zip -r ../dist/git-draft.zip  .'
 
 install: build
 ifeq ($(PREFIX),)

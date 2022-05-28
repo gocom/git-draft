@@ -2,8 +2,8 @@
 !.editorconfig
 !.github
 !.gitignore
-build
-coverage
-dist
-test-report
-test/mock/repository
+/build
+/coverage
+/dist
+/test-report
+/test/mock/repository
