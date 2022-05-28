@@ -6,6 +6,8 @@ git-draft
 Extension command for git command-line interface which allows one to
 interactively cherry-picks commits by searching their messages for a keyword.
 
+[![In action](https://raw.githubusercontent.com/gocom/git-draft/screenshots/images/usage.gif)](https://raw.githubusercontent.com/gocom/git-draft/screenshots/images/usage.gif)
+
 This tool is intended for tasks where a set of commits needs to be taken
 to a target branch in their original commit date order. This could, for
 instance, be used to build release branches from a main branch based on
