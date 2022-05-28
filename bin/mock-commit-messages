@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+main () {
+  local ticket i actions components subcomponents benefits targets \
+    action component subcomponent benefit target
+
+  actions=("Add" "Remove" "Fix" "Update")
+  components=("market" "controller" "router" "box" "glass" "cup" "simple")
+  subcomponents=("bootstrap" "thingy" "magic" "rotatory" "typo")
+  benefits=("boost" "perform" "reduce")
+  targets=("cale" "trees" "notifications" "difference" "maintainability")
+  i=0
+
+  while [ "$i" -le "${1:-100}" ]; do
+    ((ticket=RANDOM+1))
+    action="$((RANDOM % ${#actions[@]}))"
+    component="$((RANDOM % ${#components[@]}))"
+    subcomponent="$((RANDOM % ${#subcomponents[@]}))"
+    benefit="$((RANDOM % ${#benefits[@]}))"
+    target="$((RANDOM % ${#targets[@]}))"
+
+    printf "PRD-%s %s %s %s %s %s\n" \
+      "$ticket" \
+      "${actions[$action]}" \
+      "${components[$component]}" \
+      "${subcomponents[$subcomponent]}" \
+      "${benefits[$benefit]}" \
+      "${targets[$target]}"
+
+    ((i++))
+  done
+
+  return 0
+}
+
+main "$@"

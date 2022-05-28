@@ -19,4 +19,8 @@ COPY --from=kcov /usr/local/bin/kcov* /usr/local/bin/
 
 COPY --from=kcov /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
+RUN git config --global init.defaultBranch main \
+    && git config --global user.email "test.runner@example.com" \
+    && git config --global user.name "Test Runner"
+
 WORKDIR /app

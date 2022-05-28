@@ -1,4 +1,4 @@
-.PHONY: all clean docker-build help install lint process-reports test test-unit
+.PHONY: all clean docker-build help install lint mock-commits mock-repository process-reports test test-unit
 
 VERSION?=0.0.0
 RUN = docker-compose run --rm build
@@ -24,7 +24,7 @@ else
 endif
 
 lint:
-	$(RUN) shellcheck src/git-draft
+	$(RUN) shellcheck bin/* src/*
 
 process-reports:
 	$(RUN) bash -c "test -e coverage/bats.*/sonarqube.xml && sed 's/\/app\///' coverage/bats.*/cobertura.xml > coverage/cobertura.xml"
@@ -36,6 +36,12 @@ test-unit:
 
 docker-build:
 	docker-compose build build
+
+mock-commits:
+	$(RUN) bash -c "mkdir -p test/mock && bin/mock-commit-messages > test/mock/commits"
+
+mock-repository:
+	$(RUN) bash -c "bin/mock-repository test/mock/repository test/mock/commits"
 
 help:
 	@echo "Manage project"

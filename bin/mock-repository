@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+main () {
+  local message directory commits messages counter
+
+  directory="${1:-}"
+  commits="${2:-}"
+
+  if ! [ "$directory" ]; then
+    echo "Mock repository directory is required." >&2
+    exit 1
+  fi
+
+  if ! [ "$commits" ] || ! [ -f "$commits" ]; then
+    echo "Commit file is required." >&2
+    exit 1
+  fi
+
+  messages="$(cat "$commits")"
+
+  echo "Initializing repository to '$directory'..."
+
+  rm -rf "$directory" || exit 1
+  mkdir -p "$directory" || exit 1
+  cd "$directory" || exit 1
+  git init > /dev/null || exit 1
+
+  echo "Adding mock commits from '$commits'..."
+
+  counter=0
+
+  echo "" > README.md
+  git add README.md
+  git commit -m "Initial"
+
+  while read -r message; do
+    if [ "$message" ]; then
+      ((counter++))
+
+      printf '%s' '.'
+
+      cat <<EOF > "commit-$counter.md"
+Commit
+=====
+
+$message
+
+EOF
+
+      git add "commit-$counter.md"
+      git commit -m "$message" > /dev/null
+    fi
+  done <<< "$messages"
+
+  echo ""
+  echo "Added $counter commits"
+}
+
+main "$@"

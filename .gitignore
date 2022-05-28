@@ -6,3 +6,4 @@ build
 coverage
 dist
 test-report
+test/mock/repository
