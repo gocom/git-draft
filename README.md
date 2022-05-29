@@ -16,7 +16,7 @@ issue tracker identifiers as the searched keywords.
 Install
 -----
 
-Todo.
+[Download a release git-draft archive](https://github.com/gocom/git-draft/releases) and extract it.
 
 Requirements
 -----
