@@ -32,7 +32,7 @@ else
 endif
 
 lint:
-	$(RUN) shellcheck bin/* src/*
+	$(RUN) shellcheck bin/* src/git-draft
 
 process-reports:
 	$(RUN) bash -c "test -e coverage/bats.*/sonarqube.xml && sed 's/\/app\///' coverage/bats.*/cobertura.xml > coverage/cobertura.xml"
