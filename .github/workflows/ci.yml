@@ -6,8 +6,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ github.sha }}
 
     steps:
 
@@ -21,7 +19,7 @@ jobs:
         run: make process-reports
 
       - name: Package
-        run: make dist
+        run: make dist VERSION="$GITHUB_SHA"
 
       - name: Upload package
         uses: actions/upload-artifact@master

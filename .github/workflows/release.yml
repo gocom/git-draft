@@ -9,8 +9,6 @@ jobs:
   build:
     name: Create release
     runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ github.ref }}
 
     steps:
 
@@ -18,7 +16,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Package
-        run: make dist
+        run: make dist VERSION="$GITHUB_REF_NAME"
 
       - name: Changelog
         id: changelog
