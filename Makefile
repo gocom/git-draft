@@ -11,6 +11,7 @@ build:
 
 build-src:
 	$(RUN) bash -c 'mkdir -p build/bin && cp src/git-draft build/bin/git-draft && sed -i "s/@{{VERSION}}/$(VERSION)/" build/bin/git-draft && chmod +x build/bin/git-draft'
+	$(RUN) cp -r src/extra build/extra
 
 build-man:
 	$(RUN) bash -c 'mkdir -p build/man/man1/ && pandoc -s -f markdown -t man -o build/man/man1/git-draft.1 man/man1/git-draft.1.md'
