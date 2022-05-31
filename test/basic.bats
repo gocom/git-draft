@@ -14,3 +14,8 @@ PATH="$PWD/src:$PATH"
   run git-draft --version
   [[ "$status" -eq 0 ]]
 }
+
+@test "-v" {
+  run git-draft -v
+  [[ "$status" -eq 0 ]]
+}

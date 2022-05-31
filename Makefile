@@ -17,7 +17,7 @@ build-man:
 	$(RUN) bash -c 'mkdir -p build/man/man1/ && pandoc -s -f markdown -t man -o build/man/man1/git-draft.1 man/man1/git-draft.1.md'
 
 clean:
-	$(RUN) rm -rf build dist
+	$(RUN) rm -rf build dist test/mock/repository
 
 dist: build
 	$(RUN) bash -c 'mkdir -p dist && cp LICENSE build/LICENSE && cd build && zip -r ../dist/git-draft.zip  .'
