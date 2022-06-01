@@ -14,12 +14,12 @@ setup () {
 }
 
 @test "--dry-run --new" {
-  run git-draft main PRD-3893 --dry-run --new
+  run git-draft main PRD-26822 PRD-3893 --dry-run --new
   [[ "$status" -eq 0 ]]
 }
 
 @test "--dry-run --all" {
-  run git-draft main PRD-3893 --dry-run --all
+  run git-draft main PRD-3893 --dry-run --all --color
   [[ "$status" -eq 0 ]]
 }
 

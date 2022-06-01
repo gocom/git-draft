@@ -19,3 +19,8 @@ PATH="$PWD/src:$PATH"
   run git-draft -v
   [[ "$status" -eq 0 ]]
 }
+
+@test "--invalid" {
+  run git-draft --invalid
+  [[ "$status" -eq 1 ]]
+}
