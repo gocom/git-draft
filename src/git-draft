@@ -343,7 +343,7 @@ run () {
 }
 
 hashes () {
-  local args option delimiters branch
+  local args option delimiters branch delimiter delimiterAfter
 
   if [ "$#" -eq 0 ]; then
     fatal "${red}✘${reset} Branch is required."
@@ -369,7 +369,11 @@ hashes () {
       delimiter="[$delimiter]"
       args+=("--grep=^${option}${delimiter}")
       args+=("--grep=${delimiter}${option}$")
-      args+=("--grep=${delimiter}${option}${delimiter}")
+
+      for delimiterAfter in "${delimiters[@]}"; do
+        delimiterAfter="[$delimiterAfter]"
+        args+=("--grep=${delimiter}${option}${delimiterAfter}")
+      done
     done
 
     args+=("--grep=^${option}$")

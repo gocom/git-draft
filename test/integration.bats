@@ -23,6 +23,11 @@ setup () {
   [[ "$status" -eq 0 ]]
 }
 
+@test "different word delimiter before and after" {
+  run git-draft main FX-1816 --new
+  [[ "$status" -eq 0 ]]
+}
+
 teardown() {
   git checkout main 2> /dev/null
   git branch -D release/mock-test > /dev/null

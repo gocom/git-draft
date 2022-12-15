@@ -97,5 +97,4 @@ PRD-13723 Remove simple rotatory reduce maintainability
 PRD-2359 Add simple magic reduce trees
 PRD-13819 Update simple rotatory perform maintainability
 PRD-7843 Add box thingy perform maintainability
-PRD-4827 Fix cup typo reduce maintainability
-PRD-1813 Update cup typo boost trees
+FX-1815 FX-1816: Commit with fixed keyword
