@@ -343,7 +343,7 @@ run () {
 }
 
 hashes () {
-  local args option delimiters branch delimiter delimiterAfter
+  local find option branch delimiter
 
   if [ "$#" -eq 0 ]; then
     fatal "${red}✘${reset} Branch is required."
@@ -357,31 +357,22 @@ hashes () {
 
   args=()
   hashes=()
-
-  delimiters=("/" "-" "?" "!" ":" " " "." ",")
-
-  verbose "${cyan}·${reset} Grepping word delimiters are ${yellow}${delimiters[*]}${reset}"
+  delimiter=$'\n'
+  find=""
 
   for option in "$@"; do
     verbose "${cyan}·${reset} Grepping commit log for ${yellow}$option${reset}"
 
-    for delimiter in "${delimiters[@]}"; do
-      delimiter="[$delimiter]"
-      args+=("--grep=^${option}${delimiter}")
-      args+=("--grep=${delimiter}${option}$")
-
-      for delimiterAfter in "${delimiters[@]}"; do
-        delimiterAfter="[$delimiterAfter]"
-        args+=("--grep=${delimiter}${option}${delimiterAfter}")
-      done
-    done
-
-    args+=("--grep=^${option}$")
+    if [ "$find" ]; then
+      find="${find}${delimiter}${option}"
+    else
+      find="${option}"
+    fi
   done
 
   while read -r line; do
-    hashes+=("$line")
-  done < <(git --no-pager log --reverse --pretty=tformat:"%H" "${args[@]}" "$branch")
+    hashes+=("${line%% *}")
+  done < <(git --no-pager log --reverse --pretty=tformat:"%H %s" "$branch" | grep -Fw "$find")
 
   if [ "${#hashes}" -eq 0 ]; then
     fatal "${cyan}·${reset} No commits found matching the given criteria."

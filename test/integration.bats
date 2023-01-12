@@ -16,6 +16,9 @@ setup () {
 @test "--dry-run --new" {
   run git-draft main PRD-26822 PRD-3893 --dry-run --new
   [[ "$status" -eq 0 ]]
+  [[ "$output" = *"PRD-26822"* ]]
+  [[ "$output" = *"PRD-3893"* ]]
+  [[ "$output" != *"FX-1815"* ]]
 }
 
 @test "--dry-run --all" {

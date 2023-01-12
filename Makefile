@@ -1,4 +1,4 @@
-.PHONY: all build-src build-man clean docker-build help install lint mock-commits mock-repository process-reports test test-unit
+.PHONY: all build-src build-man clean shell docker-build help install lint mock-commits mock-repository process-reports test test-unit
 
 VERSION?=0.0.0
 RUN = docker-compose run --rm build
@@ -51,6 +51,9 @@ mock-commits:
 mock-repository:
 	$(RUN) bash -c "bin/mock-repository test/mock/repository test/mock/commits"
 
+shell:
+	$(RUN) bash
+
 help:
 	@echo "Manage project"
 	@echo ""
@@ -89,6 +92,15 @@ help:
 	@echo ""
 	@echo "  $$ make process-reports"
 	@echo "  Formats test reports to use relative local file paths"
+	@echo ""
+	@echo "  $$ make mock-commits"
+	@echo "  Generate list of commits mock repository is generated from"
+	@echo ""
+	@echo "  $$ make mock-repository"
+	@echo "  Generate mock repository from the commit list"
+	@echo ""
+	@echo "  $$ make shell"
+	@echo "  Log in to test container"
 	@echo ""
 	@echo "Environment variables:"
 	@echo ""

@@ -24,6 +24,7 @@ Requirements
 * Unix-like OS
 * git
 * [Bash](https://www.gnu.org/software/bash/) >= 4.3
+* [GNU grep](https://www.gnu.org/software/grep/) >= 3.4
 
 Usage
 -----
