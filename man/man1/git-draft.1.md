@@ -48,6 +48,11 @@ not detected.
 `--stdin`
 : If specified, *source branch* and *keywords* are read from standard input.
 
+`-r`, `--revert`
+: Instead of cherry-picking, search and revert commits from the
+currently active branch. *source-branch* is not using, when reverting
+commits using this option.
+
 `-all`
 : Instead of prompting for commit selection, cherry-picks all matching commits.
 
@@ -57,7 +62,8 @@ not yet present in the current branch. Commits are identified and matched based
 on their commit message.
 
 *source-branch*
-: Branch where the search commits are cherry-picked from.
+: Branch where the search commits are cherry-picked from. Not used
+if `-r` or `--revert` option is used.
 
 *keyword*
 : Keyword to search for. The keyword is searched from the commit message.
@@ -69,7 +75,7 @@ on their commit message.
 
 # FILES
 
-Depends on external programs `bash`, `cat`, `git` and `tput`, and uses
+Depends on external programs `bash`, `cat`, `git`, `grep` and `tput`, and uses
 `readline`.
 
 # EXAMPLES
@@ -85,3 +91,7 @@ based on their commit message:
 
     $ git checkout release/2022-01
     $ git draft main JIRA-894 JIRA-101 JIRA-202 JIRA-1234 --new
+
+Revert commits that contain the given keywords from the currently active branch:
+
+    $ git draft JIRA-894 JIRA-101 JIRA-202 JIRA-1234 --revert

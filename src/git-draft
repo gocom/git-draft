@@ -3,7 +3,7 @@
 # Interactively cherry-picks commits by a keyword
 # https://github.com/gocom/git-draft
 #
-# Copyright (C) 2022 Jukka Svahn
+# Copyright (C) 2023 Jukka Svahn
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,9 @@ Options:
       --no-color  Disable colors
       --stdin     Branch name and keywords from standard input
 
+  -r, --revert    Instead of cherry-picking, search and revert commits
+                  from the currently active branch
+
       --all       Select all matching commits
       --new       Select all matching new commits
 
@@ -60,7 +63,7 @@ EOF
 main () {
   local args OPTIND OPTARG OPTERR option \
     color dryrun silent verbose skip_existing stdin hashes selected \
-    reset red green yellow blue magenta cyan
+    reset red green yellow blue magenta cyan action
 
   args=()
 
@@ -71,13 +74,14 @@ main () {
     esac
   done
 
+  action="cherry-pick"
   color="always"
 
   if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
     color=""
   fi
 
-  while getopts ":hvVDQS-:" option; do
+  while getopts ":hvrVDQS-:" option; do
     case "$option" in
       -)
         case "$OPTARG" in
@@ -91,6 +95,7 @@ main () {
           new) selected="new" ;;
           all) selected="all" ;;
           stdin) stdin=1 ;;
+          revert) action="revert" ;;
           *) fatal "Invalid option: --$OPTARG" ;;
         esac
         ;;
@@ -99,6 +104,7 @@ main () {
       D) dryrun=1 ;;
       Q|S) silent=1 ;;
       V) verbose=1 ;;
+      r) action="revert" ;;
       \?) fatal "Invalid option: -$OPTARG" ;;
       :) fatal "Option -$OPTARG requires an argument." ;;
       *) fatal "Unexpected: -$OPTARG" ;;
@@ -161,7 +167,7 @@ fatal () {
   exit 1
 }
 
-pick() {
+pick () {
   local selection hash
 
   hashes "$@"
@@ -169,7 +175,7 @@ pick() {
   commits "${hashes[@]}"
 
   if ! [ "$selected" ] && ! [ "$silent" ]; then
-    read -r -p "Cherry-pick commit row (1-n, all, new, exit): " selected
+    read -r -p "Pick commit row (1-n, all, new, exit): " selected
   fi
 
   case "$selected" in
@@ -179,13 +185,17 @@ pick() {
   esac
 
   for hash in "${selection[@]}"; do
-    cherry-pick "$hash"
+    if [ "$action" = "revert" ]; then
+      revert "$hash"
+    else
+      cherry-pick "$hash"
+    fi
   done
 
   log "${green}✓${reset} All selected commits processed."
 }
 
-commits() {
+commits () {
   local hash index
 
   index=1
@@ -288,6 +298,34 @@ selection () {
   return 0
 }
 
+revert () {
+  local abort hash existing
+
+  hash="${1:-}"
+
+  log "${magenta}↯${reset} Reverting ${yellow}$hash${reset}"
+
+  if [ "$verbose" ]; then
+    commit "$hash"
+  fi
+
+  run revert "$hash" && return 0
+
+  err "${red}✘${reset} Reverting ${yellow}$hash${reset} failed"
+
+  read -r -p "Skip and continue from the next commit (Yes/no)? " abort
+
+  case "$abort" in
+    Y*|y*)
+      run revert --abort \
+        || fatal "${red}✘${reset} Aborting revert failed"
+        ;;
+    *)
+      fatal "${red}✘${reset} Exiting and leaving revert in progress"
+      ;;
+  esac
+}
+
 cherry-pick () {
   local abort hash existing
 
@@ -351,9 +389,10 @@ hashes () {
 
   log "${cyan}↻${reset} Searching for matching commits, this may take a while…"
 
-  branch="${1:-}"
-
-  shift 1
+  if ! [ "$action" = "revert" ]; then
+    branch="${1:-}"
+    shift 1
+  fi
 
   args=()
   hashes=()
@@ -370,9 +409,17 @@ hashes () {
     fi
   done
 
+  if ! [ "$action" = "revert" ]; then
+    args+=("--reverse")
+  fi
+
+  if [ "$branch" ]; then
+    args+=("$branch")
+  fi
+
   while read -r line; do
     hashes+=("${line%% *}")
-  done < <(git --no-pager log --reverse --pretty=tformat:"%H %s" "$branch" | grep -Fw "$find")
+  done < <(git --no-pager log --pretty=tformat:"%H %s" "${args[@]}" | grep -Fw "$find")
 
   if [ "${#hashes}" -eq 0 ]; then
     fatal "${cyan}·${reset} No commits found matching the given criteria."

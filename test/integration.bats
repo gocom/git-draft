@@ -26,6 +26,13 @@ setup () {
   [[ "$status" -eq 0 ]]
 }
 
+@test "--dry-run --revert" {
+  git checkout main
+  run git-draft PRD-3893 --dry-run --revert --all
+  [[ "$status" -eq 0 ]]
+  [[ "$output" = *"PRD-3893"* ]]
+}
+
 @test "different word delimiter before and after" {
   run git-draft main FX-1816 --new
   [[ "$status" -eq 0 ]]
