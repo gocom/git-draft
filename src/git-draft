@@ -175,7 +175,11 @@ pick () {
   commits "${hashes[@]}"
 
   if ! [ "$selected" ] && ! [ "$silent" ]; then
-    read -r -p "Pick commit row (1-n, all, new, exit): " selected
+    if [ "$action" = "revert" ]; then
+      read -r -p "Revert commit row (1-n, all, exit): " selected
+    else
+      read -r -p "Cherry-pick commit row (1-n, all, new, exit): " selected
+    fi
   fi
 
   case "$selected" in
@@ -400,12 +404,14 @@ hashes () {
   find=""
 
   for option in "$@"; do
-    verbose "${cyan}·${reset} Grepping commit log for ${yellow}$option${reset}"
+    if [ "$option" ]; then
+      verbose "${cyan}·${reset} Grepping commit log for ${yellow}$option${reset}"
 
-    if [ "$find" ]; then
-      find="${find}${delimiter}${option}"
-    else
-      find="${option}"
+      if [ "$find" ]; then
+        find="${find}${delimiter}${option}"
+      else
+        find="${option}"
+      fi
     fi
   done
 
@@ -418,7 +424,9 @@ hashes () {
   fi
 
   while read -r line; do
-    hashes+=("${line%% *}")
+    if [ "$line" ]; then
+      hashes+=("${line%% *}")
+    fi
   done < <(git --no-pager log --pretty=tformat:"%H %s" "${args[@]}" | grep -Fw "$find")
 
   if [ "${#hashes}" -eq 0 ]; then
