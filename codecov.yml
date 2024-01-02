@@ -1,4 +1,17 @@
 coverage:
   precision: 2
-  round: down
+  round: up
   range: "0...100"
+  status:
+    project:
+      default:
+        target: 0
+        threshold: 100%
+        paths:
+          - "src"
+    patch:
+      default:
+        target: 0
+        threshold: 100%
+        paths:
+          - "src"
