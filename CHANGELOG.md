@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+* Omit abort on conflict skipping, if no cherry-pick is in progress,
+  expecting that the user has already resolved the conflict and continue from
+  the next commit (closes #6).
+
 ## 0.2.0
 
 * Ability to revert commits with `--revert` option. Instead of cherry-picking

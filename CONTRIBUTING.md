@@ -27,13 +27,13 @@ For available commands, see:
 $ make help
 ```
 
-Coding style
+Running linter and tests
 -----
 
-To verify that your additions follows coding style, run:
+To verify that your additions follow coding style and to execute tests, run:
 
 ```shell
-$ make lint
+$ make test
 ```
 
 Configure git

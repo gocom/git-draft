@@ -168,7 +168,10 @@ fatal () {
 }
 
 pick () {
-  local selection hash
+  local selection hash git_directory
+
+  git_directory=$(git rev-parse --git-dir) \
+    || fatal "${red}✘${reset} Not inside a git directory."
 
   hashes "$@"
 
@@ -317,13 +320,17 @@ revert () {
 
   err "${red}✘${reset} Reverting ${yellow}$hash${reset} failed"
 
-  read -r -p "Skip and continue from the next commit (Yes/no)? " abort
+  read -r -p "Continue from the next commit (Yes/no)? " abort
 
   case "$abort" in
     Y*|y*)
-      run revert --abort \
-        || fatal "${red}✘${reset} Aborting revert failed"
-        ;;
+      if [ -f "${git_directory}/REVERT_HEAD" ]; then
+        run revert --abort \
+          || fatal "${red}✘${reset} Aborting revert failed"
+      else
+        log "${magenta}↯${reset} No revert in progress, continuing without abort"
+      fi
+      ;;
     *)
       fatal "${red}✘${reset} Exiting and leaving revert in progress"
       ;;
@@ -355,13 +362,17 @@ cherry-pick () {
 
   err "${red}✘${reset} Cherry-picking ${yellow}$hash${reset} failed"
 
-  read -r -p "Skip and continue from the next commit (Yes/no)? " abort
+  read -r -p "Continue from the next commit (Yes/no)? " abort
 
   case "$abort" in
     Y*|y*)
-      run cherry-pick --abort \
-        || fatal "${red}✘${reset} Aborting cherry-pick failed"
-        ;;
+      if [ -f "${git_directory}/CHERRY_PICK_HEAD" ]; then
+        run cherry-pick --abort \
+          || fatal "${red}✘${reset} Aborting cherry-pick failed"
+      else
+        log "${magenta}↯${reset} No cherry-pick in progress, continuing without abort"
+      fi
+      ;;
     *)
       fatal "${red}✘${reset} Exiting and leaving cherry-pick in progress"
       ;;
